@@ -112,6 +112,8 @@ The demand and wind series come from Red Eléctrica de España. See `data/README
 
 ## Licence
 
-Code and models: MIT (see `LICENSE`). The parameters of the Gran Canaria system are
-those published in the paper and in the reference it takes them from; the data of Red
-Eléctrica de España keep their own terms of use.
+Code and models: MIT (see `LICENSE`), copyright Universidad Politécnica de Madrid,
+by José Milla López-Asiaín, Juan I. Pérez-Díaz and Daniel Fernández-Muñoz. The
+parameters of the Gran Canaria system are those published in the paper and in the
+reference it takes them from; the data of Red Eléctrica de España keep their own
+terms of use.
