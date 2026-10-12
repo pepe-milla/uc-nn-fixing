@@ -1,0 +1,20 @@
+# Normalise line endings in the repository and leave them native in the
+# working tree, so that the sources are consistent for whoever clones from
+# Linux or macOS.
+* text=auto
+
+# Sources, so they are never treated as binary by mistake
+*.m     text
+*.gms   text
+*.op9   text
+*.md    text
+*.csv   text
+*.json  text
+*.cff   text
+*.yml   text
+
+# Data and figures
+*.mat   binary
+*.pdf   binary
+*.png   binary
+*.jpg   binary

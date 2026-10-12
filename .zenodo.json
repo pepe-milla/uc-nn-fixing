@@ -1,0 +1,33 @@
+{
+    "upload_type": "software",
+    "title": "Neural-network-assisted MIP for the Unit Commitment problem: models, code and results",
+    "description": "<p>GAMS models, MATLAB pipeline, trained neural networks, calibrated fixing bands and campaign results of the four test cases of the Gran Canaria power system (thermal and hydrothermal, base and extended formulation) used in the accompanying paper.</p><p>The repository reproduces every table and figure of the paper from the stored results, without solving a single MILP, through <code>reproduce/reproduce_all.m</code>.</p><p>The demand and wind series in <code>data/</code> come from Red El&eacute;ctrica de Espa&ntilde;a and keep their own terms of use; the parameters of the Gran Canaria system are those published in the accompanying paper and in the reference it takes them from.</p>",
+    "creators": [
+        {
+            "name": "Milla López-Asiaín, José",
+            "affiliation": "Universidad Politécnica de Madrid",
+            "orcid": "0009-0004-6361-6723"
+        },
+        {
+            "name": "Pérez-Díaz, Juan I.",
+            "affiliation": "Universidad Politécnica de Madrid"
+        },
+        {
+            "name": "Fernández-Muñoz, Daniel",
+            "affiliation": "Universidad Politécnica de Madrid"
+        }
+    ],
+    "license": "MIT",
+    "access_right": "open",
+    "version": "1.0.0",
+    "language": "eng",
+    "keywords": [
+        "unit commitment",
+        "mixed-integer programming",
+        "neural networks",
+        "LSTM",
+        "pumped-storage hydropower",
+        "power system operation",
+        "Gran Canaria"
+    ]
+}

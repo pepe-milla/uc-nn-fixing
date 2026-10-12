@@ -1,0 +1,10 @@
+* CPLEX options of the campaigns reported in the paper.
+* The MATLAB drivers rewrite this file in each worker folder.
+epgap=0.001
+itlim=100000000
+mipemphasis=2
+nodefileind=2
+parallelmode=1
+threads=2
+tilim=120
+workmem=6000

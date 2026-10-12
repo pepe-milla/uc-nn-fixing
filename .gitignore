@@ -1,0 +1,19 @@
+# GAMS leftovers
+*.lst
+*.log
+*.lxi
+*.gpr
+*.~gm
+*.dat
+225?.tmp
+fix*.tmp
+
+# worker copies of the model and results of a local re-run
+work/
+workers/
+worker*/
+reproduce/figures/
+
+# MATLAB
+*.asv
+slprj/

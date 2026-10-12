@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this software or its data, please cite the paper below."
+title: "Neural-network-assisted MIP for the Unit Commitment problem: models, code and results"
+abstract: >-
+  GAMS models, MATLAB pipeline, trained neural networks, calibrated fixing bands and
+  campaign results of the four test cases of the Gran Canaria power system (thermal and
+  hydrothermal, base and extended formulation) used in the accompanying paper.
+authors:
+  - family-names: "Milla López-Asiaín"
+    given-names: José
+    affiliation: "Universidad Politécnica de Madrid"
+    orcid: "https://orcid.org/0009-0004-6361-6723"
+  - family-names: Pérez-Díaz
+    given-names: Juan I.
+    affiliation: "Universidad Politécnica de Madrid"
+  - family-names: Fernández-Muñoz
+    given-names: Daniel
+    affiliation: "Universidad Politécnica de Madrid"
+license: MIT
+copyright: "2026 Universidad Politécnica de Madrid"
+version: "1.0.0"
+date-released: "2026-09-27"
+preferred-citation:
+  type: article
+  title: >-
+    Application of neural networks to assist MIP solvers in the UC in power systems with
+    penetration of renewable generation and pumped-storage
+  authors:
+    - family-names: "Milla López-Asiaín"
+      given-names: José
+      orcid: "https://orcid.org/0009-0004-6361-6723"
+    - family-names: Pérez-Díaz
+      given-names: Juan I.
+    - family-names: Fernández-Muñoz
+      given-names: Daniel
+  journal: "Energy Systems"
+  year: 2026
+  # doi: TO BE COMPLETED WHEN THE PAPER IS PUBLISHED
