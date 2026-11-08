@@ -23,6 +23,29 @@ scriptDir = fileparts(mfilename('fullpath'));
 caseDir   = fileparts(scriptDir);
 projDir   = fileparts(fileparts(caseDir));
 modelDir  = fullfile(uc_config().gamsRoot, 'thermal_extended');
+resDir    = fullfile(caseDir, 'results');
+cacheDir  = fullfile(caseDir, 'results', 'cache_baseline_rerun');
+% Saved with the suffix _rerun so that a new run does not overwrite the
+% result published with the paper.
+outFile   = fullfile(resDir, 'MIP_Baseline_2021-2023_i9_rerun.mat');
+workerPrefix = 'worker_thTR';
+runFile   = 'MIP_GCI_SIMPL_sinPHSP.gms';
+logName   = 'MIP_GCI_SIMPL_sinPHSP.log';
+
+% CPLEX options: the article's criteria for the thermal scenario.
+epgap   = 0.001;
+tilim   = 120;
+workmem = 6000;
+parmode = 1;
+cplexOpt = sprintf(['epgap=%g\nitlim=100000000\nmipemphasis=2\nnodefileind=2\n' ...
+                    'parallelmode=%d\nthreads=%d\ntilim=%g\nworkmem=%d\n'], ...
+                    epgap, parmode, threadsPerWorker, tilim, workmem);
+
+if ~isfolder(resDir),   mkdir(resDir);   end
+if ~isfolder(cacheDir), mkdir(cacheDir); end
+tr_prepareWorkers(workerRoot, workerPrefix, numWorkers, modelDir, cplexOpt, ...
+                  sprintf('* No fixed variables (baseline)\n'));
+
 [DAYDEM, DAYWIND, ND] = uc_load_profiles('2021-2023');
 numDays = size(ND, 1);
 

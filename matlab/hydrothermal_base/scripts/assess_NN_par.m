@@ -15,6 +15,35 @@ gamsExe    = uc_config().gamsExe;
 workerRoot = uc_config().workerRoot;
 runFile    = 'MIP_GCI_SIMPL.gms';
 logName    = 'MIP_GCI_SIMPL.log';
+caseDir    = fileparts(fileparts(mfilename('fullpath')));
+netFile    = fullfile(caseDir, 'trained models', 'NN.mat');
+bandsFile  = fullfile(caseDir, 'data', 'Fixing_bands_S2.mat');   % calibrated bands
+% Saved with the suffix _rerun so that a new run does not overwrite the
+% result published with the paper.
+outFile    = fullfile(caseDir, 'results', 'Assess_NN_par_rerun.mat');
+
+% CPLEX options: the ARTICLE's stopping criteria for the PSHP scenario
+epgap   = 0.015;
+tilim   = 1200;
+threadsPerWorker = 2;
+workmem = 6000;
+parmode = 1;
+% ------------------------------------------------------------------------
+
+load(netFile, 'netTrained');
+load(bandsFile, 'loBand', 'hiBand', 'idGroups', 'idxTurb', 'idxPump');
+
+% Prepare worker folders (consistent cplex.op9)
+for k = 1:numWorkers
+    wf = fullfile(workerRoot, sprintf('worker%d', k));
+    assert(isfolder(wf), 'Worker folder not found: %s', wf);
+    fid = fopen(fullfile(wf, 'cplex.op9'), 'w');
+    fprintf(fid, 'epgap=%g\nitlim=100000000\nmipemphasis=2\nnodefileind=2\n', epgap);
+    fprintf(fid, 'parallelmode=%d\nthreads=%d\ntilim=%g\nworkmem=%d\n', ...
+        parmode, threadsPerWorker, tilim, workmem);
+    fclose(fid);
+end
+
 % Hourly demand and wind of the period, from the data of this repository
 [DAYDEM, DAYWIND, ND] = uc_load_profiles('2021-2023');
 numDays = size(ND, 1);

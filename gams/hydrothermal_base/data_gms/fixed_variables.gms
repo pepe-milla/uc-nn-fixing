@@ -1,2 +1,1 @@
-* Variables for d = 10
-
+* No fixed variables (baseline)

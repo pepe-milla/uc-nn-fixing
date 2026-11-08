@@ -13,6 +13,15 @@
 gamsExe    = uc_config().gamsExe;
 modelDir   = fullfile(uc_config().gamsRoot, 'thermal_base');
 runFile    = 'RMIP_GCI_SIMPL_sinPHSP.gms';
+caseDir    = fileparts(fileparts(mfilename('fullpath')));
+labelFile  = fullfile(caseDir, 'data', 'Training_Data_2019-2021.mat');   % MIP labels of the same period
+% Saved with the suffix _rerun so that a new run does not overwrite the
+% result published with the paper.
+outFile    = fullfile(caseDir, 'data', 'Training_Data_S3_rerun.mat');
+% ------------------------------------------------------------------------
+
+scriptDir = fileparts(mfilename('fullpath'));
+
 % Hourly demand and wind of the period, from the data of this repository
 [DAYDEM, DAYWIND, ND] = uc_load_profiles('2019-2021');
 numDays = size(ND, 1);

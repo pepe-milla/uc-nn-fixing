@@ -31,6 +31,31 @@ scriptDir = fileparts(mfilename('fullpath'));
 caseDir   = fileparts(scriptDir);                       % the case folder
 projDir   = fileparts(fileparts(caseDir));              % ...\Trabajo
 modelDir  = fullfile(uc_config().gamsRoot, 'hydrothermal_extended');
+resDir    = fullfile(caseDir, 'results');
+cacheDir  = fullfile(caseDir, 'results', 'cache_labels_rerun');
+% Saved with the suffix _rerun so that a new run does not overwrite the
+% result published with the paper.
+outFile   = fullfile(resDir, 'MIP_Results_2019-2021_rerun.mat');
+workerPrefix = 'worker_phTR';
+runFile   = 'MIP_GCI_SIMPL.gms';
+logName   = 'MIP_GCI_SIMPL.log';
+
+% CPLEX options: the same stopping criterion as the baseline these labels
+% will be compared against. Deterministic mode is kept: the labels feed
+% everything downstream and must be reproducible.
+epgap   = 0.015;
+tilim   = 1200;
+workmem = 6000;
+parmode = 1;
+cplexOpt = sprintf(['epgap=%g\nitlim=100000000\nmipemphasis=2\nnodefileind=2\n' ...
+                    'parallelmode=%d\nthreads=%d\ntilim=%g\nworkmem=%d\n'], ...
+                    epgap, parmode, threadsPerWorker, tilim, workmem);
+
+if ~isfolder(resDir),   mkdir(resDir);   end
+if ~isfolder(cacheDir), mkdir(cacheDir); end
+phTR_prepareWorkers(workerRoot, workerPrefix, numWorkers, modelDir, cplexOpt, ...
+                    sprintf('* No fixed variables (label generation)\n'));
+
 [DAYDEM, DAYWIND, ND] = uc_load_profiles('2019-2021');
 numDays = size(ND, 1);
 

@@ -22,6 +22,49 @@ workerRoot  = uc_config().workerRoot;
 workerPrefix= 'worker_th';
 runFile     = 'MIP_GCI_SIMPL_sinPHSP.gms';
 logName     = 'MIP_GCI_SIMPL_sinPHSP.log';
+caseDir    = fileparts(fileparts(mfilename('fullpath')));
+netFile     = fullfile(caseDir, 'trained models', 'NN.mat');
+% Bands of the paper (epsilon = 0.5 %); Fixing_bands_eps01/eps03 are those of
+% the sensitivity campaigns. bandsFile may also be set by the caller.
+if ~exist('bandsFile','var'), bandsFile = fullfile(caseDir, 'data', 'Fixing_bands_eps005.mat'); end
+unitsFile   = fullfile(caseDir, 'data', 'Strategy1_units.mat');   % used when strategy1 = true
+% Saved with the suffix _rerun so that a new run does not overwrite the
+% result published with the paper.
+if ~exist('outFile','var')
+    if strategy1, outFile = fullfile(caseDir, 'results', 'Assess_NN_S1_thermal_rerun.mat');
+    else,         outFile = fullfile(caseDir, 'results', 'Assess_NN_S2_thermal_rerun.mat'); end
+end
+
+% CPLEX options: MUST match the baseline campaign
+epgap   = 0.001;
+tilim   = 120;
+threadsPerWorker = 2;
+workmem = 6000;
+parmode = 1;
+% ------------------------------------------------------------------------
+
+load(netFile, 'netTrained');
+if strategy1
+    load(unitsFile, 'trustful', 'idGroups');
+    numGen = numel(trustful);
+    fprintf('STRATEGY 1: %d trustful units\n', nnz(trustful));
+else
+    load(bandsFile, 'loBand', 'hiBand', 'idGroups');
+    numGen = numel(loBand);
+    fprintf('STRATEGY 2: calibrated bands\n');
+end
+
+% Prepare worker folders
+for k = 1:numWorkers
+    wf = fullfile(workerRoot, sprintf('%s%d', workerPrefix, k));
+    assert(isfolder(wf), 'Falta la carpeta %s', wf);
+    fid = fopen(fullfile(wf, 'cplex.op9'), 'w');
+    fprintf(fid, 'epgap=%g\nitlim=100000000\nmipemphasis=2\nnodefileind=2\n', epgap);
+    fprintf(fid, 'parallelmode=%d\nthreads=%d\ntilim=%g\nworkmem=%d\n', ...
+        parmode, threadsPerWorker, tilim, workmem);
+    fclose(fid);
+end
+
 % Hourly demand and wind of the period, from the data of this repository
 [DAYDEM, DAYWIND, ND] = uc_load_profiles('2021-2023');
 numDays = size(ND, 1);
@@ -131,5 +174,27 @@ for k = 1:numel(groups)
     for j = 1:numel(idx)
         X(idx(j),:) = cnt >= j;
     end
+end
+end
+
+function pinWorker()
+% Pins this worker to logical processors 4(k-1) and 4(k-1)+2, the mapping
+% of the previous campaigns. Local function so it travels with the parfor
+% body. Never throws: it is called outside the loop's try block, and a
+% failure here would abort the whole parfor. The timings of this campaign
+% are reported, so check that the four "anclado" lines appear at the start.
+persistent done
+if ~isempty(done), return; end
+done = true;
+try
+    tk = getCurrentTask();
+    if isempty(tk), return; end
+    k = tk.ID;
+    a = 4*(k-1);  b = a + 2;
+    proc = System.Diagnostics.Process.GetCurrentProcess();
+    proc.ProcessorAffinity = System.IntPtr(int64(2^a + 2^b));
+    fprintf('Worker %d anclado a logicos %d y %d\n', k, a, b);
+catch err
+    fprintf(2, 'Worker: no se pudo anclar (%s). Sigue sin anclar.\n', err.message);
 end
 end

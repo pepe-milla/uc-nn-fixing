@@ -27,6 +27,33 @@ gamsExe    = uc_config().gamsExe;
 workerRoot = uc_config().workerRoot;
 runFile    = 'MIP_GCI_SIMPL.gms';
 logName    = 'MIP_GCI_SIMPL.log';
+caseDir    = fileparts(fileparts(mfilename('fullpath')));
+% Saved with the suffix _rerun so that a new run does not overwrite the
+% result published with the paper.
+outFile    = fullfile(caseDir, 'results', 'MIP_Baseline_2021-2023_rerun.mat');
+
+% CPLEX options: written into each worker's cplex.op9
+epgap   = 0.015;
+tilim   = 1200;
+threadsPerWorker = 2;
+workmem = 6000;
+parmode = 1;
+% ------------------------------------------------------------------------
+
+% Prepare worker folders: consistent cplex.op9 + empty fixed_variables.gms
+for k = 1:numWorkers
+    wf = fullfile(workerRoot, sprintf('worker%d', k));
+    assert(isfolder(wf), 'Worker folder not found: %s', wf);
+    fid = fopen(fullfile(wf, 'cplex.op9'), 'w');
+    fprintf(fid, 'epgap=%g\nitlim=100000000\nmipemphasis=2\nnodefileind=2\n', epgap);
+    fprintf(fid, 'parallelmode=%d\nthreads=%d\ntilim=%g\nworkmem=%d\n', ...
+        parmode, threadsPerWorker, tilim, workmem);
+    fclose(fid);
+    fid = fopen(fullfile(wf, 'data_gms', 'fixed_variables.gms'), 'w');
+    fprintf(fid, '* No fixed variables (baseline)\n');
+    fclose(fid);
+end
+
 % Hourly demand and wind of the period, from the data of this repository
 [DAYDEM, DAYWIND, ND] = uc_load_profiles('2021-2023');
 numDays = size(ND, 1);

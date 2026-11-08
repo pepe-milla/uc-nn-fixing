@@ -28,6 +28,43 @@ scriptDir = fileparts(mfilename('fullpath'));
 caseDir   = fileparts(scriptDir);
 projDir   = fileparts(fileparts(caseDir));
 modelDir  = fullfile(uc_config().gamsRoot, 'hydrothermal_extended');
+resDir    = fullfile(caseDir, 'results');
+cacheDir  = fullfile(caseDir, 'results', 'cache_S2_rerun');
+% Saved with the suffix _rerun so that a new run does not overwrite the
+% result published with the paper.
+outFile   = fullfile(resDir, 'Assess_NN_S2_PHES_TRamp_rerun.mat');
+workerPrefix = 'worker_phTR';
+runFile   = 'MIP_GCI_SIMPL.gms';
+logName   = 'MIP_GCI_SIMPL.log';
+
+% CPLEX options: identical to the baseline, or the comparison means nothing
+epgap   = 0.015;
+tilim   = 1200;
+workmem = 6000;
+parmode = 1;
+cplexOpt = sprintf(['epgap=%g\nitlim=100000000\nmipemphasis=2\nnodefileind=2\n' ...
+                    'parallelmode=%d\nthreads=%d\ntilim=%g\nworkmem=%d\n'], ...
+                    epgap, parmode, threadsPerWorker, tilim, workmem);
+
+% Minimum up/down times of the thermal units, for the feasibility filter
+TU = [1 1 7 7 4 4 1 1 1 1 1 1 1 1 6 6];
+TD = [1 1 7 7 3 3 1 1 1 1 1 1 1 1 5 5];
+u0 = [1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 0];
+
+if ~isfolder(resDir),   mkdir(resDir);   end
+if ~isfolder(cacheDir), mkdir(cacheDir); end
+phTR_prepareWorkers(workerRoot, workerPrefix, numWorkers, modelDir, cplexOpt, ...
+                    sprintf('* Placeholder, rewritten for every day\n'));
+
+% ---- Network and bands -------------------------------------------------
+N = load(fullfile(caseDir, 'trained models', 'NN.mat'), ...
+         'netTrained', 'idGroups', 'idxTurb', 'idxPump');
+B = load(fullfile(caseDir, 'data', 'Fixing_bands.mat'), ...
+         'hiBand', 'loBand', 'epsON', 'epsOFF');
+netTrained = N.netTrained;
+idGroups = N.idGroups;  idxTurb = N.idxTurb;  idxPump = N.idxPump;
+hiBand = B.hiBand;      loBand = B.loBand;
+
 [DAYDEM, DAYWIND, ND] = uc_load_profiles('2021-2023');
 numDays = size(ND, 1);
 

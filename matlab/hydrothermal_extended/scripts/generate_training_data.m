@@ -39,6 +39,43 @@ modelDir   = fullfile(uc_config().gamsRoot, 'hydrothermal_extended');
 workerRoot = uc_config().workerRoot;
 runFile    = 'MIP_GCI_SIMPL.gms';
 logName    = 'MIP_GCI_SIMPL.log';
+chunkSize  = 20;     % days between saves
+
+% CPLEX options: same stopping criterion as the campaigns that run on top
+% of these labels. Deterministic mode is kept: the labels must be reproducible.
+epgap   = 0.015;
+tilim   = 1200;
+workmem = 6000;
+parmode = 1;
+% ------------------------------------------------------------------------
+
+scriptDir = fileparts(mfilename('fullpath'));
+resDir    = fullfile(scriptDir, '..', 'results');
+if ~isfolder(resDir), mkdir(resDir); end
+% Saved with the suffix _rerun so that a new run does not overwrite the
+% result published with the paper.
+outFile   = fullfile(resDir, sprintf('MIP_Results_2019-2021_rerun_part%d.mat', instance));
+
+% Model folder for this instance, created on first use. Emptying
+% fixed_variables.gms is not optional: a leftover file there silently
+% constrained an entire campaign earlier in this project.
+if ~isfolder(workerRoot), mkdir(workerRoot); end
+wf = fullfile(workerRoot, sprintf('phTR%d', instance));
+if ~isfolder(wf)
+    fprintf('Creando la carpeta de trabajo de la instancia %d ...\n', instance);
+    copyfile(modelDir, wf);
+end
+fid = fopen(fullfile(wf,'cplex.op9'),'w');
+fprintf(fid, 'epgap=%g\nitlim=100000000\nmipemphasis=2\nnodefileind=2\n', epgap);
+fprintf(fid, 'parallelmode=%d\nthreads=%d\ntilim=%g\nworkmem=%d\n', ...
+    parmode, threadsPerRun, tilim, workmem);
+fclose(fid);
+fid = fopen(fullfile(wf,'data_gms','fixed_variables.gms'),'w');
+fprintf(fid, '* No fixed variables (label generation)\n');
+fclose(fid);
+resFile = fullfile(wf, 'result.txt');
+logFile = fullfile(wf, logName);
+
 % Hourly demand and wind of the period, from the data of this repository
 [DAYDEM, DAYWIND, ND] = uc_load_profiles('2019-2021');
 numDays = size(ND, 1);

@@ -24,6 +24,38 @@ workerPrefix= 'worker_th';
 runMIP      = 'MIP_GCI_SIMPL_sinPHSP.gms';
 runRMIP     = 'RMIP_GCI_SIMPL_sinPHSP.gms';
 logName     = 'MIP_GCI_SIMPL_sinPHSP.log';
+caseDir    = fileparts(fileparts(mfilename('fullpath')));
+netFile     = fullfile(caseDir, 'trained models', 'NN_S3.mat');
+bandsFile   = fullfile(caseDir, 'data', 'Fixing_bands_S3.mat');
+% Saved with the suffix _rerun so that a new run does not overwrite the
+% result published with the paper.
+outFile     = fullfile(caseDir, 'results', 'Assess_NN_S3_thermal_rerun.mat');
+
+% CPLEX options: MUST match the baseline and the other thermal campaigns
+epgap   = 0.001;
+tilim   = 120;
+threadsPerWorker = 2;
+workmem = 6000;
+parmode = 1;
+% ------------------------------------------------------------------------
+
+load(netFile,   'netTrained', 'ndMu', 'ndSigma');
+load(bandsFile, 'loBand', 'hiBand', 'idGroups');
+numGen = numel(loBand);
+
+% Prepare worker folders
+for k = 1:numWorkers
+    wf = fullfile(workerRoot, sprintf('%s%d', workerPrefix, k));
+    assert(isfolder(wf), 'Falta la carpeta %s', wf);
+    assert(isfile(fullfile(wf, runRMIP)), ...
+        'Falta %s en %s (copia tambien data_gms/results_rmip.gms)', runRMIP, wf);
+    fid = fopen(fullfile(wf, 'cplex.op9'), 'w');
+    fprintf(fid, 'epgap=%g\nitlim=100000000\nmipemphasis=2\nnodefileind=2\n', epgap);
+    fprintf(fid, 'parallelmode=%d\nthreads=%d\ntilim=%g\nworkmem=%d\n', ...
+        parmode, threadsPerWorker, tilim, workmem);
+    fclose(fid);
+end
+
 % Hourly demand and wind of the period, from the data of this repository
 [DAYDEM, DAYWIND, ND] = uc_load_profiles('2021-2023');
 numDays = size(ND, 1);
@@ -145,4 +177,26 @@ while true
     if contains(line, 'Solution: variable u(i=row, t=col)'), break; end
 end
 u = fscanf(fid, '%f', [24, 16])';
+end
+
+function pinWorker()
+% Pins this worker to logical processors 4(k-1) and 4(k-1)+2, the mapping
+% of the previous campaigns. Local function so it travels with the parfor
+% body. Never throws: it is called outside the loop's try block, and a
+% failure here would abort the whole parfor. The timings of this campaign
+% are reported, so check that the four "anclado" lines appear at the start.
+persistent done
+if ~isempty(done), return; end
+done = true;
+try
+    tk = getCurrentTask();
+    if isempty(tk), return; end
+    k = tk.ID;
+    a = 4*(k-1);  b = a + 2;
+    proc = System.Diagnostics.Process.GetCurrentProcess();
+    proc.ProcessorAffinity = System.IntPtr(int64(2^a + 2^b));
+    fprintf('Worker %d anclado a logicos %d y %d\n', k, a, b);
+catch err
+    fprintf(2, 'Worker: no se pudo anclar (%s). Sigue sin anclar.\n', err.message);
+end
 end
