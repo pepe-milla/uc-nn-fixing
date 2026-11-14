@@ -25,4 +25,12 @@ source.
 `rebuild_profiles.m` regenerates the four files from a `.mat` holding the 5-minute
 records in a struct `Data` with fields `ts` (timestamps), `dem` (demand) and `eol`
 (wind). Edit the path at the top of the script and run it; the files it writes should be
-identical to the ones distributed, to the fourth decimal.
+identical to the ones distributed.
+
+The values are stored at full double precision (17 significant digits), so that
+`readmatrix` returns exactly the hourly means the campaigns of the paper used: the net
+demand computed from these files is identical, bit for bit, to the one saved in every
+result file. Version 1.0.0 rounded them to four decimals; that changed the wind of the
+hours below 1 MW, which the campaigns wrote to GAMS with five significant digits, so the
+GAMS input of 129 of the 730 days of the evaluation period (78 of the 731 of the training
+period) differed from the original and a MILP re-solved from it could follow another path.

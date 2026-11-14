@@ -18,8 +18,9 @@ authors:
     affiliation: "Universidad Politécnica de Madrid"
 license: MIT
 copyright: "2026 Universidad Politécnica de Madrid"
-version: "1.0.0"
-date-released: "2026-09-27"
+version: "1.0.1"
+doi: "10.5281/zenodo.23313336"
+date-released: "2026-11-14"
 preferred-citation:
   type: article
   title: >-
